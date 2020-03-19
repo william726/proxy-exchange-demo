@@ -16,30 +16,19 @@ public class RouteController {
     
     @RequestMapping(value="/**", method={ RequestMethod.GET, RequestMethod.POST })
     public Mono<String> proxy(ServerHttpRequest request, ServerHttpResponse response, ProxyExchange<byte[]> proxy) throws Exception {
+        
         String path = proxy.path("/");
         
         ExchangeStrategies exchangeStrategies = ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024 * 10)).build();
         
-        
-        if (request.getMethodValue().startsWith("GET")) {
-            return WebClient
-                    .builder()
-                    .exchangeStrategies(exchangeStrategies)
-                    .baseUrl("https://stackoverflow.com/")
-                    .build()
-                    .get()
-                    .uri(path)
-                    .retrieve().bodyToMono(String.class);
-        } else {
-            return WebClient
-                    .builder()
-                    .exchangeStrategies(exchangeStrategies)
-                    .baseUrl("https://stackoverflow.com/")
-                    .build()
-                    .post()
-                    .uri(path)
-                    .retrieve().bodyToMono(String.class);
-        }
+        return WebClient
+                .builder()
+                .exchangeStrategies(exchangeStrategies)
+                .baseUrl("https://stackoverflow.com/")
+                .build()
+                .method(HttpMethod.valueOf(request.getMethodValue()))
+                .uri(path)
+                .retrieve().bodyToMono(String.class);
     }
 }
